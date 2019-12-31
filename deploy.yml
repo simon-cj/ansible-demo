@@ -1,0 +1,15 @@
+---
+# code: language=ansible
+- hosts: main-nginx
+  become: yes
+  roles:
+    - nginx
+  vars:
+    nginx_conf_path: "{{ playbook_dir }}/conf/main-nginx"
+
+- hosts: sockjs-nginx
+  become: yes
+  roles:
+    - nginx
+  vars:
+    nginx_conf_path: "{{ playbook_dir }}/conf/sockjs-nginx"

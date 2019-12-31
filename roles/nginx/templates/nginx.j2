@@ -1,0 +1,14 @@
+{{ log_path }}/*.log {
+    su root root
+    daily
+    notifempty
+    missingok
+    compress
+    delaycompress
+    rotate 7
+    dateext
+    sharedscripts
+    postrotate
+       [ -f {{ pid_path }}/nginx.pid ] && kill -USR1 `cat {{ pid_path }}/nginx.pid`
+    endscript
+}

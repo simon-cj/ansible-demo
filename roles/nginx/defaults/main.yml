@@ -1,0 +1,4 @@
+nginx_upstream_default_max_fails: 10
+nginx_upstream_default_fail_timeout: 0
+
+auto_reload_safe: no

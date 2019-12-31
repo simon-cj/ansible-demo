@@ -1,0 +1,9 @@
+# code: language=ini
+
+[main-nginx]
+# main-nginx-app01
+10.131.11.54
+
+[sockjs-nginx]
+# sockjs-nginx-app01
+10.131.11.53

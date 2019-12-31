@@ -1,0 +1,13 @@
+- name: restart openresty
+  service:
+    name: openresty
+    state: restarted
+  when:
+    - auto_reload_safe|bool == true
+
+- name: reload openresty
+  service:
+    name: openresty
+    state: reloaded
+  when:
+    - auto_reload_safe|bool == true

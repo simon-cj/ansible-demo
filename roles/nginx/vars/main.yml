@@ -1,0 +1,3 @@
+---
+pid_path: "/data/apps/openresty/nginx/logs"
+log_path: "/data/logs/nginx"

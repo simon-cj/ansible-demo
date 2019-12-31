@@ -1,0 +1,24 @@
+# Stop dance for OpenResty
+# =========================
+#
+# nginx signals reference doc:
+# http://nginx.org/en/docs/control.html
+#
+[Unit]
+Description=full-fledged web platform
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/data/apps/openresty/nginx/logs/nginx.pid
+ExecStartPre=/data/apps/openresty/nginx/sbin/nginx -t -q -g 'daemon on; master_process on;'
+ExecStart=/data/apps/openresty/nginx/sbin/nginx -g 'daemon on; master_process on;'
+ExecStartPost=/bin/sleep 0.1
+ExecReload=/data/apps/openresty/nginx/sbin/nginx -g 'daemon on; master_process on;' -s reload
+ExecStop=/bin/kill -s QUIT $MAINPID
+TimeoutStopSec=15
+KillMode=mixed
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

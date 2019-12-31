@@ -1,0 +1,7 @@
+rope_agent_upstream:
+  - name: rope-app01
+    addr: 10.131.11.48:50000
+
+rope_client_upstream:
+  - name: rope-app01
+    addr: 10.131.11.48:40000

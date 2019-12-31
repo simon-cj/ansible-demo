@@ -1,0 +1,101 @@
+- name: Ensure target directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - /data/logs/nginx
+    - /data/etc
+    - /data/run
+    - /data/apps/openresty/nginx/cache
+
+- name:  Rotate openresty log
+  template:
+    src: "{{ role_path }}/templates/nginx.j2"
+    dest: /etc/logrotate.d/nginx
+    mode: 0644
+    validate: '/sbin/logrotate -d %s'
+  ignore_errors: yes
+
+- name: Creating temporary directory
+  tempfile:
+    state: directory
+  register: temp_file_path
+
+#- name: Synchronize original openresty configuration into temporary directory
+#  synchronize:
+#    src: /data/apps/openresty/nginx/
+#    dest: "{{ temp_file_path.path }}"
+#  delegate_to: "{{ inventory_hostname }}"
+#  ignore_errors: yes
+
+- name: Synchronize openresty configuration into temporary directory
+  synchronize:
+    src: "{{ nginx_conf_path }}/conf"
+    dest: "{{ temp_file_path.path }}"
+    recursive: yes
+    owner: no
+    group: no
+
+- name: Rendering template source files
+  template:
+    src: "{{ nginx_conf_path }}/conf/{{ item.path }}"
+    dest: "{{ temp_file_path.path }}/conf/{{ item.path.rstrip('.j2') }}"
+  with_filetree: "{{ nginx_conf_path }}/conf"
+  when: item.state == 'file' and item.path.endswith('.j2')
+
+- name: Update openresty configuration
+  synchronize:
+    src: "{{ temp_file_path.path }}/conf"
+    dest: /data/apps/openresty/nginx/
+    recursive: yes
+    delete: yes
+    checksum: yes
+  delegate_to: "{{ inventory_hostname }}"
+  notify:
+    - reload openresty
+
+- name: Deleting temporary directory (optional)
+  file:
+    path: "{{ temp_file_path.path }}"
+    state: absent
+
+- name: Synchronize SSL certificates
+  synchronize:
+    src: "{{ playbook_dir }}/../certificates"
+    dest: /data/
+    recursive: yes
+    owner: no
+    group: no
+  notify:
+    - reload openresty
+
+- name: Render openresty systemd service
+  copy:
+    src: "{{ role_path }}/files/openresty.service"
+    dest: /etc/systemd/system/openresty.service
+  notify:
+    - restart openresty
+
+- name: Enable openresty service
+  service:
+    name: openresty
+    enabled: yes
+  when:
+    - auto_reload_safe|bool == true
+
+- name: Reload openresty service
+  service:
+    name: openresty
+    state: reloaded
+  tags:
+    - never
+    - reload
+
+- name: Restart openresty service
+  service:
+    name: openresty
+    state: restarted
+  tags:
+    - never
+    - restart
